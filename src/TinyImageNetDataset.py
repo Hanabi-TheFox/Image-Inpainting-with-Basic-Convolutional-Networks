@@ -75,5 +75,5 @@ class TinyImageNetDataset(Dataset):
         img_path = self.data[idx]
         image = cv2.imread(img_path)
         if self.transform:
-            image = self.transform(image)
-        return image
+            image, mask = self.transform(image)
+        return image, mask
