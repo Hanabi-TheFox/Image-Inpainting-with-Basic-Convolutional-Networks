@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 import torchmetrics
-
+from image_inpainting.loss import JointLoss
 
 class ContextEncoder(pl.LightningModule):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -12,7 +12,7 @@ class ContextEncoder(pl.LightningModule):
         self.hidden_size = hidden_size
         self.num_classes = num_classes
         self.psnr_metric = torchmetrics.image.PeakSignalNoiseRatio()
-        self.loss_function = ... #TODO
+        self.loss_function = JointLoss()
 
         # TODO : Define the model here
 

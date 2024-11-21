@@ -1,5 +1,8 @@
+torch
+torchvision
+torchaudio
 lightning
 scipy
 pandas
-opencv
-python-wget
+opencv-python
+wget

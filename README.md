@@ -31,6 +31,10 @@ You first need to install PyTorch. You can find the installation instructions [h
 
 If you don't want to use conda, you can install the required packages with pip : `pip install -r requirements.txt`.
 
+## Install the package
+
+Finally, you have to install the package with: `pip install -e .`
+
 ## Check installation
 
 `python -c "import torch; print(torch.cuda.is_available())"`
@@ -46,7 +50,6 @@ Tiny Image Net : http://cs231n.stanford.edu/tiny-imagenet-200.zip
 
 1. `conda activate pytorch_env`
 2. `python test_lighning.py`
-
 
 # Authors
 

@@ -2,11 +2,8 @@ import numpy as np
 from torch.utils.data import Dataset
 import os
 import cv2
-from urllib.request import urlopen
-from io import BytesIO
 from zipfile import ZipFile
 from tqdm import tqdm
-from torchvision.datasets.utils import download_url
 import wget
 import sys
 

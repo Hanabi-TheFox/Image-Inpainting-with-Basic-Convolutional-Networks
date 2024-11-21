@@ -1,0 +1,16 @@
+[project]
+dynamic = ["dependencies"]
+name = "imageinpainting"
+version = "0.0.1"
+authors = [
+  {name = "Ethan Pinto"},
+  {name = "Robin Meneust"},
+]
+description = "Fill in missing regions in an image by generating plausible and coherent content with the rest of the image."
+readme = "README.md"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.pip]
+extra-index-url = ["https://download.pytorch.org/whl/cu124"]
