@@ -13,10 +13,10 @@ import sys
 # https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files
 
 class TinyImageNetDataset(Dataset):
-    def __init__(self, root, split="train", download=False):
+    def __init__(self, root, split="train", download=False, transform=None):
         self.root = os.path.join(root, split) #  The zip file of Tiny Image Net contains folders for train, val, and test so we can set the root this way
         self.split = split
-        self.transform = None # not yet defined in this version, but will be used later on
+        self.transform = transform
         self.data = []
 
         if download:
@@ -74,6 +74,7 @@ class TinyImageNetDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.data[idx]
         image = cv2.imread(img_path)
+        mask = None
         if self.transform:
             image, mask = self.transform(image)
         return image, mask

@@ -39,15 +39,15 @@ class TinyImageNetDataModule(pl.LightningDataModule):
     def test_dataloader(self):
         return DataLoader(self.test, batch_size=self.batch_size_test)
 
-# Ethan Commit non testé
 # if __name__ == '__main__':
 #     data_module = TinyImageNetDataModule()
 #     data_module.prepare_data()
 #     data_module.setup("fit")
 #     train_loader = data_module.train_dataloader()
 #     val_loader = data_module.val_dataloader()
+#     data_module.setup("test")
 #     test_loader = data_module.test_dataloader()
-
+#
 #     print(len(train_loader.dataset), len(val_loader.dataset), len(test_loader.dataset))
 #     for x, y in train_loader:
 #         print(x.shape, y.shape)
