@@ -7,7 +7,7 @@ Objectif principal : Remplir des régions manquantes dans une image en généran
 2. `conda activate pytorch_env`
 3. `conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia` (for Windows, see https://pytorch.org/get-started/locally/ for other versions or OS)
 4. `conda install lightning -c conda-forge`
-5. `conda install scipy pandas opencv`
+5. `conda install scipy pandas opencv python-wget`
 
 
 ## Check
