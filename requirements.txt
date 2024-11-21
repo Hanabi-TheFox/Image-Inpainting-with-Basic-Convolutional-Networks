@@ -1,0 +1,5 @@
+lightning
+scipy
+pandas
+opencv
+python-wget

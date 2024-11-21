@@ -1,0 +1,18 @@
+name: image_inpainting
+channels:
+  - conda-forge
+  - nvidia
+  - pytorch
+dependencies:
+  - python>=3.5
+  - anaconda
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.4
+  - lightning
+  - scipy
+  - pandas
+  - opencv
+  - python-wget
+

@@ -1,9 +1,9 @@
 import torch
-from TinyImageNetDataset import TinyImageNetDataset
+from tiny_image_net_dataset import TinyImageNetDataset
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from AddCenterSquareTransform import AddCenterSquareTransform
+from add_center_square_transform import AddCenterSquareTransform
 
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
