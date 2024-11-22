@@ -34,24 +34,33 @@ class TinyImageNetDataset(Dataset):
         sys.stdout.flush()
 
     @staticmethod
-    def download():
-        if os.path.exists("../data/tiny-imagenet-200"):
+    def download(path="../../data/tiny-imagenet-200"):
+        if os.path.exists(path) and len(os.listdir(path)) > 0:
             return
 
-        if not os.path.exists("../data"):
-            os.makedirs("../data")
+        if not os.path.exists(path):
+            os.makedirs(path)
 
-        if not os.path.exists("../data/tiny-imagenet-200"):
-            wget.download("http://cs231n.stanford.edu/tiny-imagenet-200.zip", out="../data/tiny-imagenet-200.zip", bar=TinyImageNetDataset._progress_bar_download)
+        path_zip = os.path.join(os.path.dirname(path), "tiny-imagenet-200.zip")
 
-            with ZipFile("../data/tiny-imagenet-200.zip", "r") as zipfile:
-                file_list = zipfile.namelist()
-                with tqdm(total=len(file_list), desc="Extracting") as pbar:
-                    for file in file_list:
-                        zipfile.extract(file, path="../data")
-                        pbar.update(1)
+        if not os.path.exists(path_zip):
+            wget.download("http://cs231n.stanford.edu/tiny-imagenet-200.zip", out=path_zip, bar=TinyImageNetDataset._progress_bar_download)
 
-            os.remove("../data/tiny-imagenet-200.zip")
+        with ZipFile(path_zip, "r") as zipfile:
+            file_list = zipfile.namelist()
+            with tqdm(total=len(file_list), desc="Extracting...") as pbar:
+                for file in file_list:
+                    zipfile.extract(file, path=path)
+                    pbar.update(1)
+
+        # in tiny-imagenet-200.zip, the content is in tiny-imagenet-200 folder, here we move the content out of the zip root folder
+        unzipped_folder = os.path.join(path, "tiny-imagenet-200")
+        print("Moving extracted files...")
+        for file in tqdm(os.listdir(unzipped_folder)):
+            os.rename(os.path.join(unzipped_folder, file), os.path.join(path, file))
+        os.rmdir(os.path.join(unzipped_folder))
+
+        os.remove(path_zip)
 
 
     def _load_train_data(self):
