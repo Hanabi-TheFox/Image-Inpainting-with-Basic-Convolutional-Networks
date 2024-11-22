@@ -3,7 +3,6 @@ from image_inpainting.tiny_image_net_dataset import TinyImageNetDataset
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from image_inpainting.add_center_square_transform import AddCenterSquareTransform
 
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
@@ -12,7 +11,8 @@ class TinyImageNetDataModule(pl.LightningDataModule):
         super().__init__()
         self.data_dir = data_dir
         self.transform = transforms.Compose([
-                            AddCenterSquareTransform(),  # Appliquer la transformation personnalisée
+                            transforms.Resize((128, 128)),  # Redimensionner l'image en 64x64
+                            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normaliser l'image
                             transforms.ToTensor()  # Convertir l'image en tenseur
                         ])
         self.batch_size_train, self.batch_size_val, self.batch_size_test = batch_size_train, batch_size_val, batch_size_test
