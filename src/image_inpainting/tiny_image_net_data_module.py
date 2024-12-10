@@ -1,5 +1,4 @@
 import torch
-from astropy.io.votable.validator.main import download
 
 from image_inpainting.tiny_image_net_dataset import TinyImageNetDataset
 import pytorch_lightning as pl
@@ -26,7 +25,6 @@ class TinyImageNetDataModule(pl.LightningDataModule):
         self.test = None
 
     def prepare_data(self):
-        #  data_dir without tiny-imagenet-200
         TinyImageNetDataset.download(self.data_dir)
 
     def setup(self, stage: str):
@@ -65,26 +63,26 @@ if __name__ == '__main__':
         print(x.shape, y.shape)
         break
 
-for img, mask in train_loader:
-    grid_img = make_grid(img[:4])
-    grid_mask = make_grid(mask[:4])
-    # dénomarliser les images pour l'affichage
-    grid_img = torch.clamp((grid_img - grid_img.min()) / (grid_img.max() - grid_img.min()), 0, 1)
-    grid_mask = torch.clamp((grid_mask - grid_mask.min()) / (grid_mask.max() - grid_mask.min()), 0, 1)
+    for img, mask in train_loader:
+        grid_img = make_grid(img[:4])
+        grid_mask = make_grid(mask[:4])
+        # dénomarliser les images pour l'affichage
+        grid_img = torch.clamp((grid_img - grid_img.min()) / (grid_img.max() - grid_img.min()), 0, 1)
+        grid_mask = torch.clamp((grid_mask - grid_mask.min()) / (grid_mask.max() - grid_mask.min()), 0, 1)
 
 
 
-    plt.figure(figsize=(8, 10))
-    plt.subplot(2, 1, 1)
-    plt.title("Images Masquées")
-    plt.imshow(grid_img.permute(1, 2, 0).numpy())
-    plt.axis("off")
+        plt.figure(figsize=(8, 10))
+        plt.subplot(2, 1, 1)
+        plt.title("Images Masquées")
+        plt.imshow(grid_img.permute(1, 2, 0).numpy())
+        plt.axis("off")
 
-    plt.subplot(2, 1, 2)
-    plt.title("Masques")
-    plt.imshow(grid_mask.permute(1, 2, 0).numpy())
-    plt.axis("off")
+        plt.subplot(2, 1, 2)
+        plt.title("Masques")
+        plt.imshow(grid_mask.permute(1, 2, 0).numpy())
+        plt.axis("off")
 
-    plt.tight_layout()
-    plt.show()
-    break
+        plt.tight_layout()
+        plt.show()
+        break

@@ -1,5 +1,7 @@
 # Image-Inpainting-with-Basic-Convolutional-Networks
-Objective : Fill in missing regions in an image by generating plausible and coherent content with the rest of the image.
+Objective : Fill in missing regions in an image by generating plausible and coherent content with the rest of the image. 
+This is an implementation of the paper: Pathak, D., Krahenbuhl, P., Donahue, J., Darrell, T., & Efros, A. A. (2016). Context Encoders: Feature Learning by Inpainting. https://arxiv.org/abs/1604.07379
+
 
 # Install
 
@@ -9,23 +11,29 @@ Make sure that CUDA is installed on your machine.
 You can check the version of CUDA with the following command: `nvcc --version`.
 It will be needed to install the correct version of PyTorch in the following steps.
 
-## Conda
+## Requirements installation
+
+### Conda
 
 In environment.yaml, change the line `- torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124` according to your CUDA version ([here](https://pytorch.org/get-started/locally/)).
 
-### Create environment
+#### Create environment
 
 If you don't have an existing conda environment, create one with the following command:
 
-`conda env create --file environment.yaml`
+`conda env create -f environment.yaml`
 
-### Update existing environment
+#### Update existing environment
 
 If you already have an existing conda environment, update it with the following command:
 
-`conda env update --file environment --prune`
+`conda env update -f environment.yaml --prune`
 
-## Without Conda
+#### Activate the environment
+
+`conda activate image_inpainting`
+
+### Without Conda
 
 You first need to install PyTorch. You can find the installation instructions [here](https://pytorch.org/get-started/locally/).
 
@@ -48,8 +56,6 @@ Tiny Image Net : http://cs231n.stanford.edu/tiny-imagenet-200.zip
 
 # Usage
 
-1. `conda activate pytorch_env`
-2. `python test_lighning.py`
 
 # Authors
 

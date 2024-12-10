@@ -2,7 +2,7 @@ from torch import nn, log
 from torch.linalg import matrix_norm
 
 class JointLoss(nn.Module):
-    def __init__(self, reconstruction_loss_weight=1.0, adversarial_loss_weight=1.0):
+    def __init__(self, reconstruction_loss_weight=0.999, adversarial_loss_weight=0.001):
         super(JointLoss, self).__init__()
         self.rec_loss_weight = reconstruction_loss_weight
         self.adv_loss_weight = adversarial_loss_weight

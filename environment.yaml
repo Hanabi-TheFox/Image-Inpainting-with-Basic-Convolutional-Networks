@@ -5,7 +5,6 @@ channels:
   - pytorch
 dependencies:
   - python>=3.5
-  - anaconda
   - pytorch
   - torchvision
   - torchaudio
@@ -15,4 +14,7 @@ dependencies:
   - pandas
   - opencv
   - python-wget
+  - astropy
+  - matplotlib
+  - tensorboard
 
