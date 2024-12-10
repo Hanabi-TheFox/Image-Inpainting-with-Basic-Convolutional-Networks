@@ -6,6 +6,7 @@ from zipfile import ZipFile
 from tqdm import tqdm
 import wget
 import sys
+from PIL import Image
 
 # https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files
 
@@ -80,7 +81,21 @@ class TinyImageNetDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.data[idx]
         image = cv2.imread(img_path)
-        mask = None
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convertir BGR en RGB
+        image = Image.fromarray(image)  # Convertir en PIL.Image
+
         if self.transform:
-            image, mask = self.transform(image)
-        return image, mask
+            image = self.transform(image)  # Transformer l'image en tenseur (3, 128, 128)
+
+        # Créer un masque central (32x32)
+        mask_size = image.shape[1] // 4  # Suppose une image carrée H x W
+        center_start = (image.shape[1] // 2 - mask_size // 2, image.shape[2] // 2 - mask_size // 2)
+        center_end = (center_start[0] + mask_size, center_start[1] + mask_size)
+
+        # Extraire la région masquée (32x32)
+        masked_region = image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]].clone()
+
+        # Remplir la région masquée avec 0 (blanc dans [0,1])
+        image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]] = 0
+
+        return image, masked_region

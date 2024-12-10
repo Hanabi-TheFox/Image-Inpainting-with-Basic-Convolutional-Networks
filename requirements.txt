@@ -6,3 +6,5 @@ scipy
 pandas
 opencv-python
 wget
+astropy
+matplotlib

@@ -6,6 +6,9 @@ import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+import matplotlib.pyplot as plt
+from torchvision.utils import make_grid
+
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
 class TinyImageNetDataModule(pl.LightningDataModule):
@@ -14,8 +17,8 @@ class TinyImageNetDataModule(pl.LightningDataModule):
         self.data_dir = data_dir
         self.transform = transforms.Compose([
                             transforms.Resize((128, 128)),  # Redimensionner l'image en 64x64
-                            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normaliser l'image
-                            transforms.ToTensor()  # Convertir l'image en tenseur
+                            transforms.ToTensor(),  # Convertir l'image en tenseur
+                            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normaliser l'image
                         ])
         self.batch_size_train, self.batch_size_val, self.batch_size_test = batch_size_train, batch_size_val, batch_size_test
         self.train = None
@@ -61,3 +64,27 @@ if __name__ == '__main__':
     for x, y in test_loader:
         print(x.shape, y.shape)
         break
+
+for img, mask in train_loader:
+    grid_img = make_grid(img[:4])
+    grid_mask = make_grid(mask[:4])
+    # dénomarliser les images pour l'affichage
+    grid_img = torch.clamp((grid_img - grid_img.min()) / (grid_img.max() - grid_img.min()), 0, 1)
+    grid_mask = torch.clamp((grid_mask - grid_mask.min()) / (grid_mask.max() - grid_mask.min()), 0, 1)
+
+
+
+    plt.figure(figsize=(8, 10))
+    plt.subplot(2, 1, 1)
+    plt.title("Images Masquées")
+    plt.imshow(grid_img.permute(1, 2, 0).numpy())
+    plt.axis("off")
+
+    plt.subplot(2, 1, 2)
+    plt.title("Masques")
+    plt.imshow(grid_mask.permute(1, 2, 0).numpy())
+    plt.axis("off")
+
+    plt.tight_layout()
+    plt.show()
+    break
