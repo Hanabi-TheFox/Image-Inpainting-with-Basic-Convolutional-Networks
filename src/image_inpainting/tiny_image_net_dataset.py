@@ -87,8 +87,8 @@ class TinyImageNetDataset(Dataset):
         if self.transform:
             image = self.transform(image)  # Transformer l'image en tenseur (3, 128, 128)
 
-        # Créer un masque central (32x32)
-        mask_size = image.shape[1] // 4  # Suppose une image carrée H x W
+        # Créer un masque central (64x64)
+        mask_size = image.shape[1] // 2  # Suppose une image carrée H x W
         center_start = (image.shape[1] // 2 - mask_size // 2, image.shape[2] // 2 - mask_size // 2)
         center_end = (center_start[0] + mask_size, center_start[1] + mask_size)
 
