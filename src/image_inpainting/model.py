@@ -2,6 +2,8 @@ import pytorch_lightning as pl
 import torch
 from torch import nn
 import torchmetrics
+
+from image_inpainting.AdversarialDiscriminator import AdversarialDiscriminator
 from image_inpainting.loss import JointLoss
 from image_inpainting.Encoder import Encoder
 from image_inpainting.Decoder import Decoder
@@ -16,11 +18,10 @@ class ContextEncoder(pl.LightningModule):
         self.psnr_metric = torchmetrics.image.PeakSignalNoiseRatio()
         self.loss_function = JointLoss()
 
-        # Define the encoder
+        # Define the encoder, the decoder and the discriminator
         self.encoder = Encoder(input_channels=input_size[0], latent_dim=hidden_size)
-
-        # Placeholder for decoder (to be implemented later)
         self.decoder = Decoder(latent_dim=hidden_size)
+        self.discriminator = AdversarialDiscriminator(input_channels=input_size[0])
 
 
     def forward(self, x):
@@ -66,6 +67,7 @@ class ContextEncoder(pl.LightningModule):
         outputs = self.forward(x)
         loss = loss_function(outputs, y)
 
+        # TODO : delete "num_classes" from the class definition ? (we don't search to classify the images)
         self.psnr += torchmetrics.functional.accuracy(outputs, y, task="multiclass", num_classes=self.num_classes)
 
         self.log('test_loss', loss, prog_bar=True)
@@ -82,10 +84,8 @@ class ContextEncoder(pl.LightningModule):
 if __name__ == "__main__":
     # Create an instance of the ContextEncoder
     model = ContextEncoder(input_size=(3, 128, 128), hidden_size=4000, num_classes=10)
-    # Define a dummy input tensor (batch size = 1, channels = 3, height = 128, width = 128)
+    # Define a dummy input tensor
     dummy_input = torch.randn(1, 3, 128, 128)
-    # Pass the dummy input through the model
     reconstructed_image = model(dummy_input)
-    # Print the output shape
     print("Input shape:", dummy_input.shape)  # Expected: torch.Size([1, 3, 128, 128])
     print("Reconstructed image shape:", reconstructed_image.shape)  # Expected: torch.Size([1, 3, 128, 128])
