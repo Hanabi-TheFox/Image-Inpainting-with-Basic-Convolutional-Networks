@@ -125,28 +125,39 @@ if __name__ == "__main__":
     # Create an instance of the ContextEncoder
     model = ContextEncoder(input_size=(3, 128, 128), hidden_size=4000)
 
-    # Training
-    dm = TinyImageNetDataModule()
-
-    tb_logger = pl_loggers.TensorBoardLogger("Context Encoder - Inpating")
-    trainer = pl.Trainer(max_epochs=20, devices=-1, accelerator="cuda", logger=tb_logger) # Use 1 GPU
+    # # Training
+    dm = TinyImageNetDataModule(num_workers=4, pin_memory=True) # They recommend using the number of cores and set to True for GPUs https://lightning.ai/docs/pytorch/stable/advanced/speed.html
+    tb_logger = pl_loggers.TensorBoardLogger("Context_Encoder_Inpainting")
+    trainer = pl.Trainer(max_epochs=5, devices=-1, accelerator="cuda", logger=tb_logger)
     trainer.fit(model, dm)
 
     trainer.test(model, dm)
 
-    # Test one image of the test set and plot the result
-    x,y = next(iter(dm.test_dataloader()))
+
+
+    # Test some images of the test set and plot the results
+
+
+    # Load it
+    model = ContextEncoder.load_from_checkpoint("Context_Encoder_Inpainting/lightning_logs/version_0/checkpoints/epoch=0-step=6250.ckpt")
+    model.to("cuda")
+
+    dm.prepare_data()
+    dm.setup("test")
+
+    x, y = next(iter(dm.test_dataloader()))
+    x = x.to("cuda")
     out = model.forward(x)
-    fig, ax = plt.subplots(1, 2)
-    ax[0].imshow(x[0].permute(1, 2, 0)) # permute dimensions from (3, 128, 128) to (128, 128, 3)
-    ax[0].set_title("Original Image")
-    ax[1].imshow(out[0].permute(1, 2, 0))
-    ax[1].set_title("Reconstructed Image")
+
+    fig, ax = plt.subplots(5, 2, figsize=(10, 20))
+    for i in range(min(5, x.shape[0])):
+        ax[i, 0].imshow(x[i].cpu().permute(1, 2, 0))
+        ax[i, 0].set_title("Original Image")
+
+        reconstructed_masked_part = out[i].detach().cpu().permute(1, 2, 0)
+        reconstructed_img = x[i].cpu().permute(1, 2, 0).clone()
+        reconstructed_img[32:96, 32:96, :] = reconstructed_masked_part
+
+        ax[i, 1].imshow(reconstructed_img)
+        ax[i, 1].set_title("Reconstructed Image")
     plt.show()
-
-
-    # # Define a dummy input tensor
-    # dummy_input = torch.randn(1, 3, 128, 128)
-    # reconstructed_image = model(dummy_input)
-    # print("Input shape:", dummy_input.shape)  # Expected: torch.Size([1, 3, 128, 128])
-    # print("Reconstructed image shape:", reconstructed_image.shape)  # Expected: torch.Size([1, 3, 128, 128])

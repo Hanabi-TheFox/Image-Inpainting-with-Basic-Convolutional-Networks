@@ -11,18 +11,20 @@ from torchvision.utils import make_grid
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
 class TinyImageNetDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir="../../data/tiny-imagenet-200", batch_size_train=32, batch_size_val=32, batch_size_test=32, transform=None):
+    def __init__(self, data_dir="../../data/tiny-imagenet-200", batch_size_train=32, batch_size_val=32, batch_size_test=32, num_workers=0, pin_memory=False):
         super().__init__()
         self.data_dir = data_dir
         self.transform = transforms.Compose([
                             transforms.Resize((128, 128)),  # Redimensionner l'image en 64x64
                             transforms.ToTensor(),  # Convertir l'image en tenseur
-                            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normaliser l'image
+                            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize the image, values often taken for ImageNet
                         ])
         self.batch_size_train, self.batch_size_val, self.batch_size_test = batch_size_train, batch_size_val, batch_size_test
         self.train = None
         self.val = None
         self.test = None
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
 
     def prepare_data(self):
         TinyImageNetDataset.download(self.data_dir)
@@ -35,13 +37,13 @@ class TinyImageNetDataModule(pl.LightningDataModule):
             self.test = TinyImageNetDataset(self.data_dir, split="test", transform=self.transform)
 
     def train_dataloader(self):
-        return DataLoader(self.train, batch_size=self.batch_size_train)
+        return DataLoader(self.train, batch_size=self.batch_size_train, num_workers=self.num_workers, pin_memory=self.pin_memory, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val, batch_size=self.batch_size_val)
+        return DataLoader(self.val, batch_size=self.batch_size_val, num_workers=self.num_workers, pin_memory=self.pin_memory)
 
     def test_dataloader(self):
-        return DataLoader(self.test, batch_size=self.batch_size_test)
+        return DataLoader(self.test, batch_size=self.batch_size_test, num_workers=self.num_workers, pin_memory=self.pin_memory)
 
 if __name__ == '__main__':
     data_module = TinyImageNetDataModule()
