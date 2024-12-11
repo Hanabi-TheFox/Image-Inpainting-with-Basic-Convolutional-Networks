@@ -72,8 +72,6 @@ if __name__ == '__main__':
         grid_img = torch.clamp((grid_img - grid_img.min()) / (grid_img.max() - grid_img.min()), 0, 1)
         grid_mask = torch.clamp((grid_mask - grid_mask.min()) / (grid_mask.max() - grid_mask.min()), 0, 1)
 
-
-
         plt.figure(figsize=(8, 10))
         plt.subplot(2, 1, 1)
         plt.title("Images Masquées")
