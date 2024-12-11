@@ -8,26 +8,36 @@ class Encoder(nn.Module):
 		self.encoder = nn.Sequential(
 			nn.Conv2d(input_channels, 64, kernel_size=4, stride=2, padding=1),  # Output: 64x64x64
 			nn.ReLU(inplace=True),
-			nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),  # Output: 32x32x128
+			nn.Conv2d(64, 64, kernel_size=4, stride=2, padding=1),  # 32x32x64
+			nn.BatchNorm2d(64),
+			nn.ReLU(inplace=True),
+			nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),  # Output: 16x16x128
 			nn.BatchNorm2d(128),
 			nn.ReLU(inplace=True),
-			nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),  # Output: 16x16x256
+			nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),  # Output: 8x8x256
 			nn.BatchNorm2d(256),
 			nn.ReLU(inplace=True),
-			nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),  # Output: 8x8x512
-			nn.BatchNorm2d(512),
-			nn.ReLU(inplace=True),
-			nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1),  # Output: 4x4x512
+			nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),  # Output: 4x4x512
 			nn.BatchNorm2d(512),
 			nn.ReLU(inplace=True),
 			nn.Conv2d(512, latent_dim, kernel_size=4, stride=1, padding=0),  # Output: 1x1xlatent_dim
 			nn.ReLU(inplace=True)
 		)
 
-	def forward(self, x):
-		return self.encoder(x)
+		# Fully connected channel-wise layer
+		self.channel_fc = nn.Sequential(
+			nn.Flatten(),  # Flatten to [batch_size, latent_dim]
+			nn.Linear(latent_dim, latent_dim),  # Fully connected across channels
+			nn.ReLU(inplace=True),
+			nn.Unflatten(1, (latent_dim, 1, 1))  # Reshape to [batch_size, latent_dim, 1, 1]
+		)
 
-# Test the decoder
+	def forward(self, x):
+		features = self.encoder(x)  # Extract features
+		latent = self.channel_fc(features)  # Fully connected channel-wise
+		return latent
+
+# Test the encoder
 if __name__ == "__main__":
 	# Create an instance of the Encoder
 	encoder = Encoder(input_channels=3, latent_dim=4000)
