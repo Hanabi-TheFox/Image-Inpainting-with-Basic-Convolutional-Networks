@@ -24,18 +24,9 @@ class Encoder(nn.Module):
 			nn.ReLU(inplace=True)
 		)
 
-		# Fully connected channel-wise layer
-		self.channel_fc = nn.Sequential(
-			nn.Flatten(),  # Flatten to [batch_size, latent_dim]
-			nn.Linear(latent_dim, latent_dim),  # Fully connected across channels
-			nn.ReLU(inplace=True),
-			nn.Unflatten(1, (latent_dim, 1, 1))  # Reshape to [batch_size, latent_dim, 1, 1]
-		)
 
 	def forward(self, x):
-		features = self.encoder(x)  # Extract features
-		latent = self.channel_fc(features)  # Fully connected channel-wise
-		return latent
+		return self.encoder(x)
 
 # Test the encoder
 if __name__ == "__main__":

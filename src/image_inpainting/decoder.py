@@ -1,21 +1,10 @@
 import torch
 from torch import nn
 
-import torch
-from torch import nn
-
 class Decoder(nn.Module):
 	def __init__(self, latent_dim=4000):
 		"""Décodeur qui reconstruit une image de 64x64 à partir d'un vecteur latent."""
 		super(Decoder, self).__init__()
-
-		# Fully connected channel-wise layer
-		self.channel_fc = nn.Sequential(
-			nn.Flatten(),
-			nn.Linear(latent_dim, latent_dim),
-			nn.ReLU(inplace=True),
-			nn.Unflatten(1, (latent_dim, 1, 1))
-		)
 
 		self.decoder = nn.Sequential(
 			nn.ConvTranspose2d(latent_dim, 512, kernel_size=4, stride=1, padding=0),  # Output: 4x4x512
@@ -35,9 +24,7 @@ class Decoder(nn.Module):
 		)
 
 	def forward(self, x):
-		latent = self.channel_fc(x)  # Process latent vector
-		reconstructed = self.decoder(latent)  # Reconstruct the image
-		return reconstructed
+		return self.decoder(x)
 
 # Test the decoder
 if __name__ == "__main__":
