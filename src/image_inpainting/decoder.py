@@ -1,9 +1,6 @@
 import torch
 from torch import nn
 
-import torch
-from torch import nn
-
 class Decoder(nn.Module):
 	def __init__(self, latent_dim=4000):
 		"""Décodeur qui reconstruit une image de 64x64 à partir d'un vecteur latent."""
