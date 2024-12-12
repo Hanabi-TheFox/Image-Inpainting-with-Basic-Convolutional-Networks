@@ -95,7 +95,8 @@ class TinyImageNetDataset(Dataset):
         # Extraire la région masquée (32x32)
         masked_region = image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]].clone()
 
-        # Remplir la région masquée avec 1 (blanc dans [0,1])
-        image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]] = 1
+        # Remplir la région masquée avec 0
+        # As mentioned in section 3.3. Region masks in the paper
+        image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]] = 0
 
         return image, masked_region
