@@ -26,9 +26,15 @@ class ReconstructionLoss(nn.Module):
         # - true_masked_regions is mask * true_masked_regions is masked : the real inner part of the image
 
         # normalized distance L2
-        diff = context_encoder_outputs - true_masked_regions
-        l2_cubed = torch.norm(diff, p=2, dim=(1, 2, 3)) ** 2
-        return l2_cubed.mean() # mean over the batch
+
+        # diff = context_encoder_outputs - true_masked_regions
+        # l2_cubed = torch.norm(diff, p=2, dim=(1, 2, 3)) ** 2 # not on the batch dimension
+        # if l2_cubed.isnan().any():
+        #     raise ValueError("NaN loss value reconstruction")
+        # return l2_cubed.mean() # mean over the batch
+
+        # We use MSE instead of the initial loss of the paper # todo: check again
+        return nn.MSELoss()(context_encoder_outputs, true_masked_regions)
 
 
 class AdversarialLoss(nn.Module):
@@ -39,12 +45,15 @@ class AdversarialLoss(nn.Module):
         # we add squeeze(-1) to remove the last dimension (e.g. (32, 1) -> (32))
 
         # how bad it is at labelling the true image as real (log(1) = 0 is what we want, log(0) -> -inf is bad)
-        log_d_real = log(real_predictions).squeeze(-1)
+        # log_d_real = log(real_predictions).squeeze(-1)
 
         # how bad is it at labelling the generated image as fake (same, and here we invert the label of fake_predictions)
-        log_d_fake = log(1 - fake_predictions).squeeze(-1)
+        # log_d_fake = log(1 - fake_predictions).squeeze(-1)
 
         # the "E" in the formula in the paper seems to be the mean (E(X))
         # Here the model is trained to maximize the logistic likelihood, but we need to return a loss to be minimized, so we just take the opposite of the given formula
-        loss_val = -((log_d_real + log_d_fake) / 2)
-        return loss_val.mean() # mean over the batch
+        # loss_val = -((log_d_real + log_d_fake) / 2)
+
+        # We use BCE instead here, even though it's maybe different from the paper # todo: check again if the original one is better
+        return (nn.BCELoss()(real_predictions, torch.ones_like(real_predictions)) + nn.BCELoss()(fake_predictions, torch.zeros_like(fake_predictions))) / 2
+        # return loss_val.mean() # mean over the batch

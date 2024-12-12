@@ -1,6 +1,6 @@
 import torch
 
-from image_inpainting.tiny_image_net_dataset import TinyImageNetDataset
+from image_inpainting.image_net_dataset import ImageNetDataset
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -10,8 +10,8 @@ from torchvision.utils import make_grid
 
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
-class TinyImageNetDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir="../../data/tiny-imagenet-200", batch_size_train=32, batch_size_val=32, batch_size_test=32, num_workers=0, pin_memory=False, persistent_workers=False):
+class ImageNetDataModule(pl.LightningDataModule):
+    def __init__(self, data_dir="../../data/imagenet", batch_size_train=32, batch_size_val=32, batch_size_test=32, num_workers=0, pin_memory=False, persistent_workers=False):
         super().__init__()
         self.data_dir = data_dir
         self.transform = transforms.Compose([
@@ -28,14 +28,14 @@ class TinyImageNetDataModule(pl.LightningDataModule):
         self.persistent_workers = persistent_workers
 
     def prepare_data(self):
-        TinyImageNetDataset.download(self.data_dir)
+        print("Note: The ImageNet dataset can't be downloaded automatically. Please refer to the README if you haven't already downloaded it")
 
     def setup(self, stage: str):
         if stage == "fit" or stage is None:
-            self.train = TinyImageNetDataset(self.data_dir, split="train", transform=self.transform)
-            self.val = TinyImageNetDataset(self.data_dir, split="val", transform=self.transform)
+            self.train = ImageNetDataset(self.data_dir, split="train", transform=self.transform)
+            self.val = ImageNetDataset(self.data_dir, split="val", transform=self.transform)
         elif stage == "test":
-            self.test = TinyImageNetDataset(self.data_dir, split="test", transform=self.transform)
+            self.test = ImageNetDataset(self.data_dir, split="test", transform=self.transform)
 
     def train_dataloader(self):
         return DataLoader(self.train, batch_size=self.batch_size_train, num_workers=self.num_workers, pin_memory=self.pin_memory, persistent_workers=self.persistent_workers, shuffle=True)
@@ -47,7 +47,7 @@ class TinyImageNetDataModule(pl.LightningDataModule):
         return DataLoader(self.test, batch_size=self.batch_size_test, num_workers=self.num_workers, pin_memory=self.pin_memory, persistent_workers=self.persistent_workers)
 
 if __name__ == '__main__':
-    data_module = TinyImageNetDataModule()
+    data_module = ImageNetDataModule()
     data_module.prepare_data()
     data_module.setup("fit")
     train_loader = data_module.train_dataloader()
