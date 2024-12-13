@@ -6,7 +6,10 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 
 import matplotlib.pyplot as plt
-from torchvision.utils import make_grid
+
+import os
+from pathlib import Path
+from image_inpainting.utils import insert_image_center
 
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
@@ -27,8 +30,18 @@ class ImageNetDataModule(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.persistent_workers = persistent_workers
 
+    @staticmethod
+    def inverse_transform(x):
+        mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
+        std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)      
+        inverse_transformed_x = x * std + mean
+        inverse_transformed_x = inverse_transformed_x.permute(1, 2, 0).numpy() # (C, H, W) -> (H, W, C) 
+        inverse_transformed_x = (inverse_transformed_x * 255).astype(int)
+        
+        return inverse_transformed_x
+
     def prepare_data(self):
-        print("Note: The ImageNet dataset can't be downloaded automatically. Please refer to the README if you haven't already downloaded it")
+        print("Note: The ImageNet dataset can't be downloaded automatically. Please refer to the README if you haven't already downloaded it. Otherwise you can skip this message.")
 
     def setup(self, stage: str):
         if stage == "fit" or stage is None:
@@ -47,7 +60,9 @@ class ImageNetDataModule(pl.LightningDataModule):
         return DataLoader(self.test, batch_size=self.batch_size_test, num_workers=self.num_workers, pin_memory=self.pin_memory, persistent_workers=self.persistent_workers)
 
 if __name__ == '__main__':
-    data_module = ImageNetDataModule()
+    dataset_path = os.path.join(Path(__file__).resolve().parent.parent.parent, "data", "imagenet")
+     
+    data_module = ImageNetDataModule(data_dir=dataset_path)
     data_module.prepare_data()
     data_module.setup("fit")
     train_loader = data_module.train_dataloader()
@@ -67,23 +82,29 @@ if __name__ == '__main__':
         break
 
     for img, mask in train_loader:
-        grid_img = make_grid(img[:4])
-        grid_mask = make_grid(mask[:4])
-        # dénomarliser les images pour l'affichage
-        grid_img = torch.clamp((grid_img - grid_img.min()) / (grid_img.max() - grid_img.min()), 0, 1)
-        grid_mask = torch.clamp((grid_mask - grid_mask.min()) / (grid_mask.max() - grid_mask.min()), 0, 1)
-
-        plt.figure(figsize=(8, 10))
-        plt.subplot(2, 1, 1)
-        plt.title("Images Masquées")
-        plt.imshow(grid_img.permute(1, 2, 0).numpy())
-        plt.axis("off")
-
-        plt.subplot(2, 1, 2)
-        plt.title("Masques")
-        plt.imshow(grid_mask.permute(1, 2, 0).numpy())
-        plt.axis("off")
-
+        selected_imgs = []
+        selected_masks = []
+        reconstructed_imgs = []
+        
+        for i in range(4):
+            selected_imgs.append(ImageNetDataModule.inverse_transform(img[i]))
+            selected_masks.append(ImageNetDataModule.inverse_transform(mask[i]))
+            reconstructed_imgs.append(insert_image_center(selected_imgs[i], selected_masks[i]))
+                
+        axes = plt.figure(figsize=(12, 12))
+        
+        
+        for i in range(4):
+            plt.subplot(4, 3, 3*i + 1)
+            plt.imshow(selected_imgs[i])
+            plt.axis("off")
+            plt.subplot(4, 3, 3*i + 2)
+            plt.imshow(selected_masks[i])
+            plt.axis("off")
+            plt.subplot(4, 3, 3*i + 3)
+            plt.imshow(reconstructed_imgs[i])
+            plt.axis("off")
+        
         plt.tight_layout()
         plt.show()
         break
