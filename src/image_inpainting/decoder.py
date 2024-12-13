@@ -10,15 +10,19 @@ class Decoder(nn.Module):
 			nn.ConvTranspose2d(latent_dim, 512, kernel_size=4, stride=1, padding=0),  # Output: 4x4x512
 			nn.BatchNorm2d(512),
 			nn.ReLU(inplace=True),
+   
 			nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1),  # Output: 8x8x256
 			nn.BatchNorm2d(256),
 			nn.ReLU(inplace=True),
+   
 			nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),  # Output: 16x16x128
 			nn.BatchNorm2d(128),
 			nn.ReLU(inplace=True),
+   
 			nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # Output: 32x32x64
 			nn.BatchNorm2d(64),
 			nn.ReLU(inplace=True),
+   
 			nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1),  # Output: 64x64x3
 			nn.Tanh()  # To normalize output between [-1, 1]
 		)

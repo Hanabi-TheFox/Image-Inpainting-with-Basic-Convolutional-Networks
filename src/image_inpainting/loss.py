@@ -65,22 +65,35 @@ class AdversarialLoss(nn.Module):
         super(AdversarialLoss, self).__init__()
 
     def forward(self, fake_predictions, real_predictions):
+        # correction = 1e-8 # to avoid log(0) which is -inf (not explained in the paper but needed)
         # we add squeeze(-1) to remove the last dimension (e.g. (32, 1) -> (32))
 
         # how bad it is at labelling the true image as real (log(1) = 0 is what we want, log(0) -> -inf is bad)
-        # log_d_real = log(real_predictions).squeeze(-1)
+        # log_d_real = torch.log(real_predictions + correction).mean()
 
         # how bad is it at labelling the generated image as fake (same, and here we invert the label of fake_predictions)
-        # log_d_fake = log(1 - fake_predictions).squeeze(-1)
+        # log_d_fake = torch.log(1 - fake_predictions + correction).mean()
 
         # the "E" in the formula in the paper seems to be the mean (E(X))
         # Here the model is trained to maximize the logistic likelihood, but we need to return a loss to be minimized, so we just take the opposite of the given formula
         # loss_val = -((log_d_real + log_d_fake) / 2)
-
+        # return loss_val
+                
         # We use BCE instead here, even though it's maybe different from the paper
         # Even the LUA version of the paper uses BCE
-        return (nn.BCELoss()(real_predictions, torch.ones_like(real_predictions)) + nn.BCELoss()(fake_predictions, torch.zeros_like(fake_predictions))) / 2
-        # return loss_val.mean() # mean over the batch
+        
+        # Actually BCE is the same as the formula in the paper because we have:
+        
+        # BCE_real = -y_real * log(real_predictions) - (1 - y_real) * log(1 - real_predictions)
+        # but y_real = 1, so we have -log(real_predictions)
+        
+        # and BCE_fake = -y_fake * log(fake_predictions) - (1 - y_fake) * log(1 - fake_predictions)
+        # but y_fake = 0, so we have -log(1 - fake_predictions) = -log(fake_predictions)
+        
+        fake_loss = nn.BCELoss()(fake_predictions, torch.zeros_like(fake_predictions))
+        real_loss = nn.BCELoss()(real_predictions, torch.ones_like(real_predictions))
+        return (fake_loss + real_loss) / 2
+
 
 # Test the encoder
 if __name__ == "__main__":

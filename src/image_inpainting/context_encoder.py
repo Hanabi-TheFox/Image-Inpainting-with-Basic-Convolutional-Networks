@@ -46,14 +46,13 @@ class ContextEncoder(pl.LightningModule):
 
     def configure_optimizers(self):
         # They use a higher learning rate for context encoder (10 times) to that of adversarial discriminator (page 6 of the paper)
-        generator_optimizer = torch.optim.Adam(self.generator.parameters(), lr=1e-3)
-        discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters(), lr=1e-3) # 1e-4 in the paper is for overlapping region (please refer to the losses in this package)
+        generator_optimizer = torch.optim.Adam(self.generator.parameters(), lr=1e-3, betas=(0.5, 0.999)) # suggested in the LUA code of the paper
+        discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters(), lr=1e-3, betas=(0.5, 0.999)) # 1e-4 in the paper is for overlapping region (please refer to the losses in this package)
 
         return [generator_optimizer, discriminator_optimizer], [] # [] because there is no scheduler
 
     def training_step(self, batch, batch_idx):
         masked_imgs, true_masked_regions = batch
-
         generator_outputs = self.forward(masked_imgs)
 
         generator_optimizer, discriminator_optimizer = self.optimizers()
@@ -65,29 +64,33 @@ class ContextEncoder(pl.LightningModule):
         # these three steps were not really well explained in the paper, but it's a common practice to do it
         # and this is also described here: https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/basic-gan.html
         discriminator_loss_val = self.adv_loss(fake_predictions=self.discriminator(generator_outputs.detach()), real_predictions=self.discriminator(true_masked_regions))
+
+        discriminator_optimizer.zero_grad()
         self.manual_backward(discriminator_loss_val)
         discriminator_optimizer.step()
-        discriminator_optimizer.zero_grad()
+        
         self.untoggle_optimizer(discriminator_optimizer)
 
         # Generator
-        self.toggle_optimizer(generator_optimizer) # we don't want to update the discriminator here
         
+        generator_outputs = self.forward(masked_imgs)
         discriminator_outputs = self.discriminator(generator_outputs)
         joint_loss_val = self.joint_loss(generator_outputs, true_masked_regions, discriminator_outputs)
         
+        generator_optimizer.zero_grad()
         self.manual_backward(joint_loss_val)
         generator_optimizer.step()
-        generator_optimizer.zero_grad()
+        
         self.untoggle_optimizer(generator_optimizer)
         
 
         psnr_val = self.psnr_metric(generator_outputs, true_masked_regions)
         
         self.log('train_psnr', psnr_val, prog_bar=True)
-        self.log('train_loss', joint_loss_val, prog_bar=True)
+        self.log('train_loss_context_encoder', joint_loss_val, prog_bar=True)
+        self.log('train_loss_discriminator', discriminator_loss_val, prog_bar=True)
         
-        return joint_loss_val
+        return {'train_joint_loss': joint_loss_val, 'train_loss_discriminator': discriminator_loss_val}
 
     def validation_step(self, batch, batch_idx):
         masked_imgs, true_masked_regions = batch
@@ -95,10 +98,11 @@ class ContextEncoder(pl.LightningModule):
 
         psnr_val = self.psnr_metric(generator_outputs, true_masked_regions)
         discriminator_outputs = self.discriminator(generator_outputs)
-        loss_val = self.joint_loss(generator_outputs, true_masked_regions, discriminator_outputs)
+        joint_loss_val = self.joint_loss(generator_outputs, true_masked_regions, discriminator_outputs)
 
         self.log('val_psnr', psnr_val, prog_bar=True)
-        self.log('val_loss', loss_val, prog_bar=True)
+        self.log('val_loss', joint_loss_val, prog_bar=True)
+        return joint_loss_val
 
     def test_step(self, batch, batch_idx):
         masked_imgs, true_masked_regions = batch
@@ -106,12 +110,13 @@ class ContextEncoder(pl.LightningModule):
 
         psnr_val = self.psnr_metric(generator_outputs, true_masked_regions)
         discriminator_outputs = self.discriminator(generator_outputs)
-        loss_val = self.joint_loss(generator_outputs, true_masked_regions, discriminator_outputs)
+        joint_loss_val = self.joint_loss(generator_outputs, true_masked_regions, discriminator_outputs)
 
         self.test_psnr += psnr_val
 
         self.log('test_psnr', psnr_val, prog_bar=True)
-        self.log('test_loss', loss_val, prog_bar=True)
+        self.log('test_loss', joint_loss_val, prog_bar=True)
+        return joint_loss_val
 
     def on_test_epoch_start(self):
         self.test_psnr = 0
