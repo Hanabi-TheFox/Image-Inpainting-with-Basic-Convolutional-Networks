@@ -98,7 +98,6 @@ class AdversarialLoss(nn.Module):
 # Test the encoder
 if __name__ == "__main__":
     # Define a dummy input tensor (batch size = 1, channels = 3, height = 128, width = 128)
-     # zeroes like
     dummy_x = torch.zeros(1, 3, 128, 128)
     dummy_y = torch.full((1, 3, 128, 128), 1)
     

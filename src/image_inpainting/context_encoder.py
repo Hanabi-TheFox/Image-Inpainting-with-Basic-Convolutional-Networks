@@ -1,3 +1,5 @@
+from pathlib import Path
+import os
 import matplotlib.pyplot as plt
 from pytorch_lightning import loggers as pl_loggers
 import pytorch_lightning as pl
@@ -12,8 +14,9 @@ from image_inpainting.loss import JointLoss, ReconstructionLoss, AdversarialLoss
 from image_inpainting.tiny_image_net_data_module import TinyImageNetDataModule
 from image_inpainting.image_net_data_module import ImageNetDataModule
 from image_inpainting.utils import insert_image_center
-
+from pytorch_lightning.callbacks import ModelCheckpoint
 import numpy as np
+from image_inpainting.utils import print_results_images
 
 # Based on https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/basic-gan.html
 class ContextEncoder(pl.LightningModule):
@@ -128,13 +131,13 @@ class ContextEncoder(pl.LightningModule):
     def on_validation_end(self):
         x, _ = next(iter(self.trainer.datamodule.val_dataloader()))
         
-        # x is a batch of images I only want tthe output for one image
+        # x is a batch of images but we only want the output for one image
         x = x[0].unsqueeze(0).to(self.device)
         out = self.forward(x)        
         
         reconstructed_image = x[0].cpu().clone()
         reconstructed_image = self.trainer.datamodule.inverse_transform(reconstructed_image)
-        reconstructed_masked_part = dm.inverse_transform(out.detach().cpu()[0])
+        reconstructed_masked_part = self.trainer.datamodule.inverse_transform(out.detach().cpu()[0])
         reconstructed_image = insert_image_center(reconstructed_image, reconstructed_masked_part).astype(np.uint8)
         
         # move channels to 1st dimension
@@ -148,10 +151,6 @@ class ContextEncoder(pl.LightningModule):
             )
 
 
-
-from pathlib import Path
-import os
-
 # Test the ContextEncoder
 if __name__ == "__main__":
     data_dir = os.path.join(Path(__file__).resolve().parent.parent.parent, "data")
@@ -160,34 +159,42 @@ if __name__ == "__main__":
     model = ContextEncoder(input_size=(3, 128, 128), hidden_size=4000, save_image_per_epoch=True)
     
     # Or load it
-    # model = ContextEncoder.load_from_checkpoint("Context_Encoder_Inpainting/lightning_logs/version_8/checkpoints/epoch=58-step=184434.ckpt")
+    # model = ContextEncoder.load_from_checkpoint("Context_Encoder_Inpainting/lightning_logs/version_47/checkpoints/epoch=54-step=171930.ckpt")
     # model.enable_save_image_per_epoch()
     # model.to("cuda")
     
     # Training
     # They recommend using the number of cores and set to True for GPUs https://lightning.ai/docs/pytorch/stable/advanced/speed.html
-    dm = TinyImageNetDataModule(
-        data_dir=os.path.join(data_dir, "tiny-imagenet-200"),
-        batch_size_train=64, 
-        batch_size_val=64, 
-        batch_size_test=64, 
-        num_workers=10,
-        pin_memory=True, 
-        persistent_workers=True
-    )
-    
-    # dm = ImageNetDataModule(
-    #     data_dir=os.path.join(data_dir, "imagenet"), 
-    #     batch_size_train=32,
-    #     batch_size_val=32,
-    #     batch_size_test=32,
-    #     num_workers=10, 
+    # dm = TinyImageNetDataModule(
+    #     data_dir=os.path.join(data_dir, "tiny-imagenet-200"),
+    #     batch_size_train=64, 
+    #     batch_size_val=64, 
+    #     batch_size_test=64, 
+    #     num_workers=10,
     #     pin_memory=True, 
     #     persistent_workers=True
     # )
     
+    dm = ImageNetDataModule(
+        data_dir=os.path.join(data_dir, "imagenet"), 
+        batch_size_train=64,
+        batch_size_val=64,
+        batch_size_test=64,
+        num_workers=10, 
+        pin_memory=True, 
+        persistent_workers=True
+    )
+    
+    checkpoint_callback = ModelCheckpoint(
+        dirpath='checkpoints/',
+        filename='{current_date}-epoch={epoch:02d}-val_loss={val_loss:.2f}',
+        monitor='val_loss',
+        save_top_k=-1,  # Save all checkpoints
+        every_n_epochs=1  # Save checkpoint every n epochs
+    )
+    
     tb_logger = pl_loggers.TensorBoardLogger("Context_Encoder_Inpainting")
-    trainer = pl.Trainer(max_epochs=30, devices=-1, accelerator="cuda", logger=tb_logger)
+    trainer = pl.Trainer(max_epochs=300, devices=-1, accelerator="cuda", logger=tb_logger, callbacks=[checkpoint_callback])
     
     trainer.fit(model, dm)
     
@@ -204,25 +211,20 @@ if __name__ == "__main__":
     dm.setup("test")
 
     x, y = next(iter(dm.test_dataloader()))
-    x = x.to("cuda")
+        
+    x = x.to(model.device)
+    y = y.to(model.device)
+    
+    out = model.forward(x)
+    
+    print_results_images(x, y, out, "Results on test set", dm.inverse_transform)
+    
+    
+    dm.setup("fit")
+
+    x, y = next(iter(dm.train_dataloader()))
+    x = x.to(model.device)
+    y = y.to(model.device)
     out = model.forward(x)
 
-    fig, ax = plt.subplots(5, 2, figsize=(10, 20))
-    for i in range(min(5, x.shape[0])):
-        original_img = x[i].cpu().clone()
-        true_masked_part = y[i].cpu().clone()
-        
-        original_img = dm.inverse_transform(original_img)
-        true_masked_part = dm.inverse_transform(true_masked_part)
-        original_img = insert_image_center(original_img, true_masked_part)
-
-        ax[i, 0].imshow(original_img)
-        ax[i, 0].set_title("Original Image")
-
-        reconstructed_masked_part = out[i].detach().cpu()
-        reconstructed_masked_part = dm.inverse_transform(reconstructed_masked_part)
-        reconstructed_image = insert_image_center(original_img, reconstructed_masked_part)
-        
-        ax[i, 1].imshow(reconstructed_image)
-        ax[i, 1].set_title("Reconstructed Image")
-    plt.show()
+    print_results_images(x, y, out, "Results on training set", dm.inverse_transform)
