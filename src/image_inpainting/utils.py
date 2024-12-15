@@ -3,6 +3,15 @@ import matplotlib.pyplot as plt
 
 
 def insert_image_center(image, center_region):
+    """Inserts the center region into the image.
+    
+    Args:
+        image(np.array): The image to insert the center region into.
+        center_region(np.array): The center region to insert into the image.
+        
+    Returns:
+        (np.array): The image with the center region inserted.
+    """
     new_image = np.copy(image)
 
     half_mask_size = center_region.shape[0] // 2
@@ -16,6 +25,15 @@ def insert_image_center(image, center_region):
     return new_image
 
 def print_results_images(inputs, true_masked_parts, predicted_center_regions, title, inverse_transform_function):
+    """Prints the input image, the true masked part and the predicted center region for the first 5 images in the batch.
+    
+    Args:
+        inputs(torch.Tensor): The input images.
+        true_masked_parts(torch.Tensor): The true masked parts of the images.
+        predicted_center_regions(torch.Tensor): The predicted center regions of the images.
+        title(str): The title of the plot.
+        inverse_transform_function(callable): The function to inverse the transformation of the images (undo normalization).
+    """
     fig, ax = plt.subplots(5, 3, figsize=(10, 20))
     true_masked_parts = true_masked_parts.cpu().clone()
     inputs = inputs.cpu().clone()

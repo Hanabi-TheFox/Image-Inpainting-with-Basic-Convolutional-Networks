@@ -1,13 +1,7 @@
-import pytorch_lightning as pl
-import torch
 from torch import nn
-import torchmetrics
 
-from image_inpainting.adversarial_discriminator import AdversarialDiscriminator
-
-from image_inpainting.encoder import Encoder
-from image_inpainting.decoder import Decoder
-from image_inpainting.tiny_image_net_data_module import TinyImageNetDataModule
+from image_inpainting.model.encoder import Encoder
+from image_inpainting.model.decoder import Decoder
 
 
 class AdversarialGenerator(nn.Module):

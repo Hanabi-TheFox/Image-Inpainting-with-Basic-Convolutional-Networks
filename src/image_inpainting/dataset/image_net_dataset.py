@@ -1,12 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 from torch.utils.data import Dataset
 import os
 import cv2
-import tarfile
-from tqdm import tqdm
-import wget
-import sys
 from PIL import Image
 
 # https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files

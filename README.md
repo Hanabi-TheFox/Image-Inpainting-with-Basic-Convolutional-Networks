@@ -58,8 +58,10 @@ Tiny Image Net : http://cs231n.stanford.edu/tiny-imagenet-200.zip
 
 ## Image net
 
-The dataset object of Imagenet expects a folder "imagenet" with 3 folders inside: train, val, test. Each of those has a list of folders with images inside.
+The dataset object of Imagenet expects a folder (e.g. nammed "imagenet") with 3 folders inside: train, val, test. Each of those has a list of folders with images inside.
 The ImageNet datasets that we have collected and preprocessed (64x64 and 128x128) aren't available for now, since it might be against the ImageNet policy to publish it.
+
+The original dataset is ILSVRC 2012: https://huggingface.co/datasets/ILSVRC/imagenet-1k
 
 # Authors
 
