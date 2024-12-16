@@ -25,10 +25,10 @@ class ContextEncoder(pl.LightningModule):
         generator (AdversarialGenerator): The generator model.
         discriminator (AdversarialDiscriminator): The discriminator model.
         save_image_per_epoch (bool): Whether to save the first inpainted image (from the validation set) per epoch or not. Default is False.
-        lr_g (float): The learning rate for the generator. Default is 1e-3. Because the paper says "We use a higher learning rate for context encoder (10 times) to that of adversarial discriminator"
-        lr_d (float): The learning rate for the discriminator. Default is 1e-4.
+        lr_g (float): The learning rate for the generator. Default is 0.002 as mentioned in the cited paper. Because the paper says "We use a higher learning rate for context encoder (10 times) to that of adversarial discriminator"
+        lr_d (float): The learning rate for the discriminator. Default is 0.0002.
     """
-    def __init__(self, input_size=(3, 128, 128), hidden_size=4000, reconstruction_loss_weight = 0.999, adversarial_loss_weight = 0.001, save_image_per_epoch=False, lr_g=1e-3, lr_d=1e-4):
+    def __init__(self, input_size=(3, 128, 128), hidden_size=4000, reconstruction_loss_weight = 0.999, adversarial_loss_weight = 0.001, save_image_per_epoch=False, lr_g=0.002, lr_d=0.0002):
         """Initializes the ContextEncoder class.
         
         Args:
@@ -86,8 +86,8 @@ class ContextEncoder(pl.LightningModule):
             list: The list of schedulers (empty list in this case).
         """
         # They use a higher learning rate for context encoder (10 times) to that of adversarial discriminator (page 6 of the paper)
-        generator_optimizer = torch.optim.Adam(self.generator.parameters(), lr=self.lr_g, betas=(0.5, 0.999)) # suggested in the LUA code of the paper
-        discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr_d, betas=(0.5, 0.999)) # 1e-4 in the paper is for overlapping region (please refer to the losses in this package)
+        generator_optimizer = torch.optim.Adam(self.generator.parameters(), lr=self.lr_g, betas=(0.5, 0.9)) # suggested in the cited paper https://arxiv.org/pdf/1511.06434
+        discriminator_optimizer = torch.optim.Adam(self.discriminator.parameters(), lr=self.lr_d, betas=(0.5, 0.9)) # same as above
 
         return [generator_optimizer, discriminator_optimizer], [] # [] because there is no scheduler
 

@@ -14,22 +14,15 @@ from image_inpainting.utils import insert_image_center
 # AIIP Exercises & https://lightning.ai/docs/pytorch/stable/data/datamodule.html
 
 class ImageNetDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir="../../data/imagenet", batch_size_train=32, batch_size_val=32, batch_size_test=32, num_workers=0, pin_memory=False, persistent_workers=False, normalize_to_0_1=False):
+    def __init__(self, data_dir="../../data/imagenet", batch_size_train=32, batch_size_val=32, batch_size_test=32, num_workers=0, pin_memory=False, persistent_workers=False):
         super().__init__()
         self.data_dir = data_dir
-        self.normalize_to_0_1 = normalize_to_0_1
         
-        transforms_operations = [
+        self.transform = transforms.Compose([
             transforms.Resize((128, 128)), # Resize image to 128x128
-            transforms.ToTensor() # Convert image to tensor (normalized to [0,1])
-        ]
-
-        if normalize_to_0_1:
-            self.transform = transforms.Compose(transforms_operations)
-        else:
-            self.transform = transforms.Compose(transforms_operations + 
-                [transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])]  # Normalize for ImageNet
-            )
+            transforms.ToTensor(), # Convert image to tensor (normalized to [0,1])
+            transforms.Normalize(mean=0.5, std=0.5) # Normalize to -1 1
+        ])
             
         self.batch_size_train, self.batch_size_val, self.batch_size_test = batch_size_train, batch_size_val, batch_size_test
         self.train = None
@@ -39,14 +32,8 @@ class ImageNetDataModule(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.persistent_workers = persistent_workers
 
-    def inverse_transform(self, x):
-        if self.normalize_to_0_1:
-            inverse_transformed_x = x # already on 0 1 scale
-        else:
-            mean = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-            std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)      
-            inverse_transformed_x = x * std + mean
-            
+    def inverse_transform(self, x):    
+        inverse_transformed_x = x * 0.5 + 0.5 # denormalize to [0, 1]
         inverse_transformed_x = inverse_transformed_x.permute(1, 2, 0).numpy() # (C, H, W) -> (H, W, C) 
         inverse_transformed_x = (inverse_transformed_x * 255).astype(int)
         

@@ -63,6 +63,10 @@ The ImageNet datasets that we have collected and preprocessed (64x64 and 128x128
 
 The original dataset is ILSVRC 2012: https://huggingface.co/datasets/ILSVRC/imagenet-1k
 
+# Usage
+
+Please refer to the notebooks for examples.
+
 # Authors
 
 - Ethan PINTO

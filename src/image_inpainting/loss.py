@@ -82,6 +82,8 @@ class ReconstructionLoss(nn.Module):
         # - true_masked_regions is mask * true_masked_regions is masked : the real inner part of the image
 
         # normalized distance L2
+        
+        # Here overlap is the region in the 7px border, and non-overlap is region inside
 
         mask_overlap = torch.ones_like(true_masked_regions)
         # dim 1 is batch, dim 2 is channels, dim 3 is height, dim 4 is width
@@ -92,16 +94,13 @@ class ReconstructionLoss(nn.Module):
         diff = context_encoder_outputs - true_masked_regions
         overlap_diff = diff * mask_overlap
         non_overlap_diff = diff * mask_non_overlap
-        
-        # l2_cubed_overlap_diff = (torch.norm(overlap_diff, p=2, dim=(1, 2, 3)) ** 2) # not on the batch dimension
-        # l2_cubed_non_overlap_diff = (torch.norm(non_overlap_diff, p=2, dim=(1, 2, 3)) ** 2) # not on the batch dimension
-        
+                
         # We use mse instead of l2, as they do in the lua version of the paper
-        l2_cubed_overlap_mse = (overlap_diff ** 2).mean(dim=(1, 2, 3))
-        l2_cubed_non_overlap_mse = (non_overlap_diff ** 2).mean(dim=(1, 2, 3))
+        l2_cubed_overlap_mse = (overlap_diff ** 2).mean(dim=(1, 2, 3)) # not on the batch dimension
+        l2_cubed_non_overlap_mse = (non_overlap_diff ** 2).mean(dim=(1, 2, 3)) # not on the batch dimension
         
         # Mean over batch
-        loss = l2_cubed_overlap_mse + self.overlapping_weight_factor * l2_cubed_non_overlap_mse
+        loss = l2_cubed_overlap_mse * self.overlapping_weight_factor + l2_cubed_non_overlap_mse
         
         return loss.mean() # mean over batch
 
