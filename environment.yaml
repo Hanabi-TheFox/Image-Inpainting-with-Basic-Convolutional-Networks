@@ -17,4 +17,5 @@ dependencies:
   - astropy
   - matplotlib
   - tensorboard
-
+  - pillow
+  - imageio

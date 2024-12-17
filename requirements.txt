@@ -9,3 +9,5 @@ wget
 astropy
 matplotlib
 tensorboard
+pillow
+imageio

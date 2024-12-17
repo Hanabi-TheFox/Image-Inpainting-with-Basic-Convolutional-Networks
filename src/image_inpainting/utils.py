@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import imageio
+from tensorboard.backend.event_processing import event_accumulator
+import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
 def insert_image_center(image, center_region):
     """Inserts the center region into the image.
@@ -64,3 +67,51 @@ def print_results_images(inputs, true_masked_parts, predicted_center_regions, ti
         ax[i, 2].axis("off")
     fig.suptitle(title)
     plt.show()
+    
+def extract_images_from_tensorboard_logs(event_files_paths, tag_name):
+    epoch = 0
+    size_guidance = {
+        'images': 0,  # I didn't set it first so only 4 images were fetched
+    }
+    
+    if not isinstance(event_files_paths, list):
+        event_files_paths = [event_files_paths]
+            
+    images = []
+    for event_path in event_files_paths:
+        accumulator = event_accumulator.EventAccumulator(event_path, size_guidance)
+        accumulator.Reload()
+        
+        if tag_name not in accumulator.Tags()['images']:
+            continue
+        
+        for event in accumulator.Images(tag_name):
+            img = event.encoded_image_string
+            img = imageio.imread(img)
+            img = Image.fromarray(img.astype(np.uint8))
+            
+            draw = ImageDraw.Draw(img)
+            font = ImageFont.load_default()
+            text = f"Epoch: {epoch}"
+            
+            epoch += 1
+            
+            _, height = img.size
+            position = (10, height - 15)
+            draw.text(position, text, font=font, fill="green")
+            
+            images.append(img)
+        epoch -= 1 # because if we have multiple paths it's because we reloaded the model, so it will print the same image twice
+        if event_path != event_files_paths[-1]:
+            images.pop(-1)
+        
+
+    return images
+
+def create_gif(images, output_file_path, fps=3, pause_duration=3):
+    with imageio.get_writer(output_file_path, mode='I', fps=fps, loop=0) as writer:
+        for image in images:
+            writer.append_data(image)
+            
+        for _ in range(pause_duration):
+            writer.append_data(images[-1])
