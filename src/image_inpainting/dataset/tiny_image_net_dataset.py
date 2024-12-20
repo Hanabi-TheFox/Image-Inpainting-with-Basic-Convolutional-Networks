@@ -11,7 +11,23 @@ from PIL import Image
 # https://pytorch.org/tutorials/beginner/basics/data_tutorial.html#creating-a-custom-dataset-for-your-files
 
 class TinyImageNetDataset(Dataset):
+    """Tiny ImageNet dataset for image inpainting
+    
+    Attributes:
+        root (str): Root directory of the dataset
+        split (str): Split of the dataset (train, val, test)
+        transform (torchvision.transforms): Transform to apply to the images
+        data (list): List of image paths
+    """
     def __init__(self, root, split="train", download=False, transform=None):
+        """Initialize the Tiny ImageNet dataset
+        
+        Args:
+            root (str): Root directory of the dataset
+            split (str): Split of the dataset (train, val, test)
+            download (bool): Download the dataset
+            transform (torchvision.transforms): Transform to apply to the images
+        """
         self.root = os.path.join(root, split) #  The zip file of Tiny Image Net contains folders for train, val, and test so we can set the root this way
         self.split = split
         self.transform = transform
@@ -29,6 +45,13 @@ class TinyImageNetDataset(Dataset):
 
     @staticmethod
     def _progress_bar_download(current, total, width=80):
+        """Show a progress bar for the download
+        
+        Args:
+            current (int): Current progress
+            total (int): Total progress
+            width (int): Width of the progress bar
+        """
         # https://stackoverflow.com/questions/58125279/python-wget-module-doesnt-show-progress-bar
         progress_message = f"Downloading... {100*current/total:.2f} %"
         sys.stdout.write("\r" + progress_message)
@@ -36,6 +59,11 @@ class TinyImageNetDataset(Dataset):
 
     @staticmethod
     def download(path="../../data/tiny-imagenet-200"):
+        """Download the Tiny ImageNet dataset
+        
+        Args:
+            path (str): Path to download the dataset
+        """
         if os.path.exists(path) and len(os.listdir(path)) > 0:
             return
 
@@ -65,6 +93,7 @@ class TinyImageNetDataset(Dataset):
 
 
     def _load_train_data(self):
+        """Load the train data"""
         for subdir in os.listdir(self.root):
             subdir_path = os.path.join(self.root, subdir, "images")
             for img_file in os.listdir(subdir_path):
@@ -72,13 +101,27 @@ class TinyImageNetDataset(Dataset):
         self.data = np.array(self.data)
 
     def _load_test_val_data(self):
+        """Load the test or val data"""
         images_path = os.path.join(self.root, "images")
         self.data = np.array([os.path.join(images_path, img_file) for img_file in os.listdir(images_path)])
 
     def __len__(self):
+        """Return the length of the dataset
+        
+        Returns:
+            int: Length of the dataset
+        """
         return len(self.data)
 
     def __getitem__(self, idx):
+        """Get an item from the dataset and apply the needed transformations beforehand
+        
+        Args:
+            idx (int): Index of the item to get
+        
+        Returns:
+            tuple: Image with masked region (dropout center) and the region that was dropped out
+        """
         img_path = self.data[idx]
         image = cv2.imread(img_path)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convertir BGR en RGB

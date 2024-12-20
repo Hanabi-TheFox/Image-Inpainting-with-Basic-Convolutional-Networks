@@ -48,7 +48,7 @@ class JointLoss(nn.Module):
         return self.rec_loss_weight * rec_loss_val + self.adv_loss_weight * adv_loss_val
 
 class ReconstructionLoss(nn.Module):
-    """Reconstruction loss function for the context encoder described in the paper.
+    """Reconstruction loss function for the context encoder described in the paper. It gives a higher weight to the overlapping region (i.e. the borders of the predictions) compared to the non-overlapping region.
     
     Attributes:
         overlapping_width_px(int): The width of the overlapping region in pixels. Tt's set to 7 in the paper.

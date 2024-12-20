@@ -69,9 +69,18 @@ def print_results_images(inputs, true_masked_parts, predicted_center_regions, ti
     plt.show()
     
 def extract_images_from_tensorboard_logs(event_files_paths, tag_name):
+    """Extracts the images from the tensorboard logs.
+    
+    Args:
+        event_files_paths(list): The paths to the event files.
+        tag_name(str): The tag name of the images (e.g. validation/inpainted_image_1).
+    
+    Returns:
+        (list): The images extracted from the tensorboard logs.
+    """
     epoch = 0
     size_guidance = {
-        'images': 0,  # I didn't set it first so only 4 images were fetched
+        'images': 0, # I didn't set it first so only 4 images were fetched. Here it's removing the limit on the number of images returned
     }
     
     if not isinstance(event_files_paths, list):
@@ -109,6 +118,14 @@ def extract_images_from_tensorboard_logs(event_files_paths, tag_name):
     return images
 
 def create_gif(images, output_file_path, fps=3, pause_duration=3):
+    """Creates a gif from images and save it in given path.
+    
+    Args:
+        images(list): The list of images to create the gif from.
+        output_file_path(str): The path to save the gif to.
+        fps(int): The frames per second of the gif.
+        pause_duration(int): The duration of the pause at the end of the gif (in number of frames).
+    """
     with imageio.get_writer(output_file_path, mode='I', fps=fps, loop=0) as writer:
         for image in images:
             writer.append_data(image)
