@@ -58,6 +58,8 @@ class ContextEncoder(pl.LightningModule):
         self.discriminator = AdversarialDiscriminator(input_channels=input_size[0])
         
         self.save_image_per_epoch = save_image_per_epoch  
+        
+        self.save_hyperparameters()
 
     def enable_save_image_per_epoch(self):
         """Enables saving the first inpainted image (from the validation set) per epoch."""

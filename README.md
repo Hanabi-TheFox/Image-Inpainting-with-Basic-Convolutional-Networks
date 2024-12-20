@@ -67,6 +67,14 @@ The original dataset is ILSVRC 2012: https://huggingface.co/datasets/ILSVRC/imag
 
 Please refer to the notebooks for examples.
 
+# Examples
+
+![image](results_images/tiny_image_net_v3_batch_64_image_1.gif)
+![image2](results_images/imagenet_128_200_factor_losses_coefficients_batch_512_image_0.gif)
+![image3](results_images/image_net_128_200_factor_losses_coefficients_batch_512_test.png)
+![image4](results_images/image_net_128_500_factor_losses_coefficients_batch_512_test.png)
+
+
 # Authors
 
 - Ethan PINTO
