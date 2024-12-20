@@ -1,0 +1,10 @@
+adversarial_loss_weight: 0.005
+hidden_size: 4000
+input_size: !!python/tuple
+- 3
+- 128
+- 128
+lr_d: 0.0002
+lr_g: 0.002
+reconstruction_loss_weight: 0.995
+save_image_per_epoch: true
