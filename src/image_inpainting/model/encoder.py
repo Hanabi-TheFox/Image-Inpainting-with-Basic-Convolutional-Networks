@@ -2,7 +2,22 @@ import torch
 from torch import nn
 
 class Encoder(nn.Module):
+	"""
+	Encoder class for image inpainting using a convolutional neural network.
+	This class defines an encoder network that takes an input image and encodes it into a latent representation.
+	The network consists of several convolutional layers with LeakyReLU activations and batch normalization.
+	Attributes:
+		encoder (nn.Sequential): A sequential container of convolutional layers, batch normalization, and LeakyReLU activations.
+	"""
 	def __init__(self, input_channels=3, latent_dim=4000):
+		"""
+		Initializes the Encoder model.
+		Args:
+			input_channels (int): Number of input channels for the images. Default is 3 (for RGB images).
+			latent_dim (int): Dimension of the latent space. Default is 4000.
+		The encoder consists of a series of convolutional layers with LeakyReLU activations and BatchNorm layers.
+		The output of the encoder is a latent representation of the input image with dimensions 1x1xlatent_dim.
+		"""
 		super(Encoder, self).__init__()
 
 		self.encoder = nn.Sequential(
@@ -31,6 +46,15 @@ class Encoder(nn.Module):
 
 
 	def forward(self, x):
+		"""
+		Perform a forward pass through the encoder.
+
+		Args:
+			x (torch.Tensor): Input tensor to be passed through the encoder.
+
+		Returns:
+			torch.Tensor: Output tensor after being processed by the encoder.
+		"""
 		return self.encoder(x)
 
 # Test the encoder

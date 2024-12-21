@@ -61,21 +61,22 @@ class ImageNetDataset(Dataset):
         """
         img_path = self.data[idx]
         image = cv2.imread(img_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convertir BGR en RGB
-        image = Image.fromarray(image)  # Convertir en PIL.Image
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert BGR on RGB
+        image = Image.fromarray(image)  # Convert to PIL.Image
 
         if self.transform:
-            image = self.transform(image)  # Transformer l'image en tenseur (3, 128, 128)
+            image = self.transform(image)  # Transform the image into a resized normalised tensor (3, 128, 128)
 
-        # Créer un masque central (64x64)
-        mask_size = image.shape[1] // 2  # Suppose une image carrée H x W
+        # Crating mask (64x64)
+        mask_size = image.shape[1] // 2  # mask size is half of the image size
         center_start = (image.shape[1] // 2 - mask_size // 2, image.shape[2] // 2 - mask_size // 2)
         center_end = (center_start[0] + mask_size, center_start[1] + mask_size)
 
-        # Extraire la région masquée (32x32)
+        # Get the region that will be masked
         masked_region = image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]].clone()
 
-        # Remplir la région masquée avec 0 (blanc dans [0,1])
+        # Mask the region with a white square
+        # As mentioned in section 3.3. Region masks in the paper
         image[:, center_start[0]:center_end[0], center_start[1]:center_end[1]] = 0
 
         return image, masked_region

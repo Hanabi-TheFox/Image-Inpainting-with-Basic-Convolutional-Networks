@@ -2,8 +2,20 @@ import torch
 from torch import nn
 
 class Decoder(nn.Module):
+	"""
+	A Decoder class for image inpainting using a basic convolutional network.
+	Attributes:
+		decoder (nn.Sequential): A sequential container of transposed convolutional layers, batch normalization layers, 
+								 and activation functions to decode the latent representation into an image.
+	"""
 	def __init__(self, latent_dim=4000):
-		"""Décodeur qui reconstruit une image de 64x64 à partir d'un vecteur latent."""
+		"""
+		Initializes the Decoder model.
+		Args:
+			latent_dim (int): The dimensionality of the latent space. Default is 4000.
+		The Decoder model consists of a series of ConvTranspose2d layers with BatchNorm2d and ReLU activations,
+		followed by a final ConvTranspose2d layer with a Tanh activation to normalize the output between [-1, 1].
+		"""
 		super(Decoder, self).__init__()
 
 		self.decoder = nn.Sequential(
@@ -28,6 +40,15 @@ class Decoder(nn.Module):
 		)
 
 	def forward(self, x):
+		"""
+		Perform a forward pass through the decoder.
+
+		Args:
+			x (torch.Tensor): The input tensor to be processed by the decoder.
+
+		Returns:
+			torch.Tensor: The output tensor after being processed by the decoder.
+		"""
 		return self.decoder(x)
 
 # Test the decoder
